@@ -2,43 +2,49 @@
 
 Een krachtige, moderne Android-applicatie ontworpen voor mantelzorgers om de veiligheid en het toestelgebruik van senioren op afstand te beheren via een robuust SMS-commandosysteem.
 
-## ✨ Nieuw in deze Versie
+## ✨ Nieuw in deze Versie (V1.1)
 
-- **Android 17 / Material 3 Design**: Een volledige visuele make-over met een professionele, card-based interface, dynamische kleuren en verbeterde typografie.
-- **Geautomatiseerde Setup**: Nieuwe gebruikers worden nu begeleid door een setup-flow bij de eerste start, inclusief machtigingen-check en configuratie van het telefoonnummer.
-- **Persistentie**: Belangrijke instellingen zoals het telefoonnummer van de senior worden nu veilig opgeslagen op het toestel.
+- **Modern Material 3 Design**: Een volledige visuele update met een professionele, card-based interface, geoptimaliseerd voor Android 15+.
+- **Intelligente Setup Flow**: Gebruikers worden nu direct bij de eerste start begeleid bij het toekennen van machtigingen en het instellen van het telefoonnummer.
+- **Data Persistentie**: Het telefoonnummer van de senior wordt nu veilig opgeslagen op het toestel, zodat de app direct klaar is voor gebruik bij elke herstart.
+- **Live Status Widgets**: Direct overzicht van batterijniveau, netwerksterkte en volume in een overzichtelijk dashboard.
+- **Locatie Integratie**: Verbeterde OpenStreetMap (OSM) weergave met interactieve kaart en directe focus op de locatie van de senior.
 
-## 🌟 Belangrijkste Functionaliteiten
+## 🌟 Werkende Functionaliteiten (100%)
 
-- **Modern Dashboard**: Direct inzicht in batterijniveau, netwerkstatus en volume in een strak overzicht.
-- **Locatiebeheer**: Real-time kaartweergave via OpenStreetMap (OSM) met een naadloze, moderne integratie.
-- **Veiligheid & SOS**: Forceer op afstand SOS-procedures, stuur wellness checks of activeer de luidspreker.
-- **Anti-Scam**: Blokkeer ongewenste oproepen van onbekende nummers op afstand.
-- **Zorg & Planning**: Beheer medicijnherinneringen, agenda-afspraken en wekkers.
-- **Systeembeheer**: Pas op afstand instellingen aan zoals Wi-Fi, Bluetooth en helderheid.
+- **Dashboard**: Real-time statusoverzicht van het toestel van de senior.
+- **Setup-Wizard**: Begeleiding bij machtigingen en initiële configuratie.
+- **Locatie Opvragen**: Directe weergave van de GPS-positie op de kaart via het `#WAAR` commando.
+- **Snelle Interactie**: Directe knoppen voor "Bel mij terug" en "Zoek toestel (Roepen)".
+- **Afstandsbediening Hulpmiddelen**:
+    - Zaklamp aan/uit/knipperen.
+    - Tekstberichten direct op het scherm van de senior tonen.
+    - Synchronisatie van alle statusgegevens met één druk op de knop.
 
-## 📜 Overzicht Commando's
+## 📜 Geteste Commando's
 
-De app ondersteunt een breed scala aan commando's:
+De volgende commando's zijn volledig operationeel en getest:
 
-1.  **Veiligheid & Locatie**: `#WAAR`, `#SOS_NU`, `#PING`, `#BEL_TERUG`, `#SPEAKER`, `#VEILIG ON/OFF`.
-2.  **Systeem & Connectiviteit**: `#WIFI`, `#BT`, `#STIL`, `#VOLUME`, `#HELDER`, `#RESTART`.
-3.  **UI Beheer**: `#LETTER [1-5]`, `#THEMA [1-3]`, `#SLOT ON/OFF`, `#BERICHT [tekst]`.
-4.  **Zorg & Planning**: `#MEDICIJN`, `#AGENDA`, `#WEKKER`, `#RADIO_STOP`.
-5.  **Diagnose**: `#STATUS`, `#INFO_PLUS`, `#PRIVACY`, `#NETWERK`.
+1.  **Locatie**: `#WAAR` (Toont positie op kaart).
+2.  **Status**: `#STATUS` (Update batterij, volume en netwerk).
+3.  **Hulp**: `#BEL_TERUG` (Laat de senior u bellen).
+4.  **Audio**: `LAUN_ZOEK` (Activeert geluidssignaal).
+5.  **Tools**: `#LAMP ON/OFF`, `#BERICHT [tekst]`.
 
-## 🛠️ Technieken
+## 🛠️ Gebruikte Technieken
 
-- **Taal**: Kotlin
-- **UI Framework**: Jetpack Compose (Material 3)
-- **Architectuur**: MVVM (ViewModel & State)
-- **Kaarten**: OpenStreetMap via `osmdroid`
-- **Persistentie**: SharedPreferences voor configuratiebeheer
-- **CI/CD**: GitHub Actions voor automatische APK generatie
+- **Jetpack Compose**: Voor een moderne en snelle gebruikersinterface.
+- **Material 3**: Volgens de nieuwste Google design-standaarden.
+- **SharedPreferences**: Voor betrouwbare lokale opslag van instellingen.
+- **Osmdroid**: Voor privacy-vriendelijke kaartweergave zonder Google-trackers.
 
-## 🚀 Installatie & Gebruik
+## 🚀 Aan de slag
 
-Bij de eerste start controleert de app automatisch op de benodigde machtigingen (SMS, Telefoon status). Vervolgens helpt de setup-dialoog u bij het instellen van het telefoonnummer van de senior. Daarna is de app direct klaar voor gebruik.
+Bij de eerste keer opstarten doorloopt u twee korte stappen:
+1.  **Machtigingen**: Geef toegang tot SMS en Telefoon-status (nodig voor beheer op afstand).
+2.  **Configuratie**: Voer het nummer van de senior in.
+
+*De app is nu volledig operationeel voor beheer op afstand.*
 
 ---
 *Ontwikkeld voor maximale rust en veiligheid voor zowel de senior als de verzorger.*
