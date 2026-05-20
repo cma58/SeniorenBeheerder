@@ -1,15 +1,37 @@
-# SeniorenBeheerder
+# Senioren Beheerder 🛡️
 
-Een Android applicatie voor het beheren van instellingen en veiligheid van senioren via SMS commando's.
+Een krachtige Android-applicatie ontworpen voor mantelzorgers om de veiligheid en het toestelgebruik van senioren op afstand te beheren via een robuust SMS-commandosysteem.
 
-## Functionaliteiten
-- **Dashboard**: Overzicht van batterij status, Wi-Fi en volume.
-- **Locatie**: Vraag de huidige locatie van de telefoon op.
-- **Veiligheid**: Directe acties voor noodsituaties.
-- **Instellingen**: Beheer op afstand.
+## 🌟 Belangrijkste Functionaliteiten
 
-## Technieken
-- Kotlin
-- Jetpack Compose
-- Material 3
-- SMS Manager API
+- **Dashboard**: Direct inzicht in batterijniveau, netwerkstatus en volume.
+- **Locatiebeheer**: Real-time kaartweergave via OpenStreetMap (OSM) zonder dat gebruikers API-keys nodig hebben.
+- **Veiligheid & SOS**: Forceer op afstand SOS-procedures, stuur wellness checks (#PING) of activeer de luidspreker.
+- **Anti-Scam**: Blokkeer ongewenste oproepen van onbekende nummers op afstand.
+- **Zorg & Planning**: Beheer medicijnherinneringen, agenda-afspraken en wekkers.
+- **Systeembeheer**: Pas op afstand instellingen aan zoals Wi-Fi, Bluetooth, helderheid en tekstgrootte.
+
+## 📜 Overzicht Commando's
+
+De app ondersteunt meer dan 35 commando's, onderverdeeld in:
+
+1.  **Veiligheid & Locatie**: `#WAAR`, `#SOS_NU`, `#PING`, `#BEL_TERUG`, `#SPEAKER`, `#VEILIG ON/OFF`, `#BLOKKEER [nr]`.
+2.  **Systeem & Connectiviteit**: `#WIFI`, `#BT`, `#STIL`, `#VOLUME`, `#HELDER`, `#SCHERM_TIJD`, `#RESTART`.
+3.  **UI Beheer**: `#LETTER [1-5]`, `#THEMA [1-3]`, `#SLOT ON/OFF`, `#PIN [code]`.
+4.  **Zorg & Planning**: `#MEDICIJN`, `#VOORRAAD`, `#AGENDA`, `#WEKKER`, `#RADIO_STOP`.
+5.  **Diagnose**: `#STATUS`, `#INFO_PLUS`, `#PRIVACY`, `#LAATSTE_OPROEP`, `#APP_LIJST`, `#NETWERK`.
+
+## 🛠️ Technieken
+
+- **Taal**: Kotlin
+- **UI Framework**: Jetpack Compose met Material 3
+- **Architectuur**: MVVM (ViewModel & State)
+- **Kaarten**: OpenStreetMap via `osmdroid` (Play Store vriendelijk)
+- **Communicatie**: Android Telephony SDK (SMS Manager & BroadcastReceivers)
+
+## 🚀 Installatie & Gebruik
+
+De app is ontworpen voor de Play Store en vereist geen ingewikkelde configuratie. Na installatie vraagt de app om de benodigde SMS-machtigingen om correct te kunnen functioneren als beheerderstootstel.
+
+---
+*Ontwikkeld voor maximale rust en veiligheid voor zowel de senior als de verzorger.*

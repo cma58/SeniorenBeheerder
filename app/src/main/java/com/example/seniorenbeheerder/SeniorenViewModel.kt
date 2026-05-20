@@ -1,6 +1,7 @@
 package com.example.seniorenbeheerder
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,44 +20,110 @@ class SeniorenViewModel(context: Context) : ViewModel() {
     }
 
     fun sendCommand(command: String) {
+        Log.d("SeniorenViewModel", "Sending command: $command to ${state.phoneNumber}")
         state = state.copy(isSyncing = true)
         smsSender.sendSms(state.phoneNumber, command)
     }
 
     fun handleIncomingSms(body: String) {
-        state = state.copy(isSyncing = false)
+        Log.d("SeniorenViewModel", "Handling incoming SMS: $body")
+        var newState = state.copy(isSyncing = false)
         
-        when {
-            body.startsWith("#STATUS") -> {
-                val battery = body.substringAfter("BATT:").substringBefore(" ").toIntOrNull() ?: state.batteryLevel
-                val wifi = body.contains("WIFI:AAN")
-                val bluetooth = body.contains("BT:AAN")
-                val volume = body.substringAfter("VOL:").substringBefore(" ").toIntOrNull() ?: state.volumeLevel
-                val media = body.substringAfter("MEDIA:").substringBefore(" ").toIntOrNull() ?: state.mediaVolumeLevel
-                val silent = body.contains("STIL:AAN")
-                
-                state = state.copy(
-                    batteryLevel = battery,
-                    isWifiEnabled = wifi,
-                    isBluetoothEnabled = bluetooth,
-                    volumeLevel = volume,
-                    mediaVolumeLevel = media,
-                    isSilentMode = silent
-                )
+        // Verwijder de "Sionro Remote:" prefix als die er is
+        val cleanBody = if (body.startsWith("Sionro Remote:")) {
+            body.substringAfter("Sionro Remote:").trim()
+        } else {
+            body.trim()
+        }
+
+        // Reset check
+        if (cleanBody == "Locatie:") {
+            newState = newState.copy(latitude = null, longitude = null)
+        }
+
+        // 1. Batterij, Volume en Stilte (kunnen in elk bericht zitten)
+        if (cleanBody.contains("🔋")) {
+            val battery = cleanBody.substringAfter("🔋").trim().substringBefore("%").trim().toIntOrNull()
+            Log.d("SeniorenViewModel", "Parsed battery: $battery")
+            if (battery != null) newState = newState.copy(batteryLevel = battery)
+        }
+        if (cleanBody.contains("🔊")) {
+            val volumeText = cleanBody.substringAfter("🔊").trim().substringBefore("/").trim()
+            val volume = volumeText.toIntOrNull()
+            Log.d("SeniorenViewModel", "Parsed volume: $volume")
+            if (volume != null) newState = newState.copy(volumeLevel = volume)
+        }
+        if (cleanBody.contains("🔕 Stil:")) {
+            val silent = cleanBody.contains("🔕 Stil: JA")
+            Log.d("SeniorenViewModel", "Parsed silent: $silent")
+            newState = newState.copy(isSilentMode = silent)
+        }
+
+        // 2. Locatie en Coördinaten
+        if (cleanBody.contains("maps.google.com") || cleanBody.contains("google.com/maps") || cleanBody.contains("query=") || cleanBody.contains("📍 Locatie:")) {
+            Log.d("SeniorenViewModel", "Processing Location SMS")
+            
+            // Probeer coördinaten te extraheren (bijv. 51.0441737,3.7436598 of query=51.044,3.743)
+            val coordsPattern = Regex("([-+]?\\d+\\.\\d+),([-+]?\\d+\\.\\d+)")
+            val match = coordsPattern.find(cleanBody)
+            if (match != null) {
+                val lat = match.groupValues[1].toDoubleOrNull()
+                val lon = match.groupValues[2].toDoubleOrNull()
+                Log.d("SeniorenViewModel", "Parsed coordinates: $lat, $lon")
+                if (lat != null && lon != null) {
+                    newState = newState.copy(latitude = lat, longitude = lon)
+                }
             }
-            body.contains("maps.google.com") -> {
-                state = state.copy(lastLocationUrl = body)
-            }
-            body.startsWith("#PRIVACY_RES") -> {
-                state = state.copy(privacyReport = body.removePrefix("#PRIVACY_RES").trim())
-            }
-            body.startsWith("#INFO_RES") -> {
-                state = state.copy(systemInfo = body.removePrefix("#INFO_RES").trim())
-            }
-            body.startsWith("#AGENDA_RES") -> {
-                val items = body.removePrefix("#AGENDA_RES").split("|").map { it.trim() }.filter { it.isNotEmpty() }
-                state = state.copy(agendaToday = items)
+
+            if (cleanBody.startsWith("1&query=")) {
+                val currentUrl = state.lastLocationUrl ?: ""
+                newState = newState.copy(lastLocationUrl = currentUrl + cleanBody)
+            } else {
+                val url = cleanBody.split(" ").find { it.contains("http") } ?: cleanBody
+                newState = newState.copy(lastLocationUrl = url)
             }
         }
+
+        // 3. Privacy Status
+        if (cleanBody.startsWith("Privacy Status:") || cleanBody.contains("GPS:") || cleanBody.contains("Permissions:")) {
+            Log.d("SeniorenViewModel", "Processing Privacy SMS")
+            newState = newState.copy(privacyReport = cleanBody.removePrefix("Privacy Status:").trim())
+        }
+
+        // 4. Systeem Info
+        if (cleanBody.startsWith("Info:") || cleanBody.contains("Android:") || cleanBody.contains("Storage:")) {
+            Log.d("SeniorenViewModel", "Processing System Info SMS")
+            newState = newState.copy(systemInfo = cleanBody.removePrefix("Info:").trim())
+        }
+
+        // 5. Agenda en Wekkers
+        if (cleanBody.startsWith("Agenda:") || cleanBody.contains("Afspraken:") || cleanBody.contains("Wekkers:")) {
+            Log.d("SeniorenViewModel", "Processing Agenda/Wekkers SMS")
+            val items = cleanBody.substringAfter(":").trim()
+                .split("\n")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            newState = newState.copy(agendaToday = items)
+        }
+
+        // 6. Netwerk Status
+        if (cleanBody.startsWith("Netwerk:") || cleanBody.contains("Provider:")) {
+            Log.d("SeniorenViewModel", "Processing Network Status SMS")
+            newState = newState.copy(systemInfo = "Netwerk Status:\n$cleanBody")
+        }
+
+        // 7. Oproep Details
+        if (cleanBody.startsWith("Oproep:") || cleanBody.contains("Laatste oproep:")) {
+            Log.d("SeniorenViewModel", "Processing Call Details SMS")
+            newState = newState.copy(systemInfo = "Oproep Details:\n$cleanBody")
+        }
+
+        // 8. Lege Agenda meldingen
+        if (cleanBody.contains("Geen afspraken vandaag") || cleanBody.contains("Geen wekkers")) {
+            Log.d("SeniorenViewModel", "Processing Empty Agenda SMS")
+            newState = newState.copy(agendaToday = emptyList())
+        }
+
+        state = newState
     }
 }

@@ -1,14 +1,20 @@
 package com.example.seniorenbeheerder
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.example.seniorenbeheerder.ui.DashboardScreen
 import com.example.seniorenbeheerder.ui.SafetyScreen
 import com.example.seniorenbeheerder.ui.SettingsScreen
@@ -49,9 +57,40 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SeniorenBeheerderTheme {
+                PermissionHandler()
                 SmsListener(viewModel)
                 SeniorenBeheerderApp(viewModel)
             }
+        }
+    }
+}
+
+@Composable
+fun PermissionHandler() {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (!allGranted) {
+            Toast.makeText(context, "Machtigingen nodig voor SMS functionaliteit", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val permissions = mutableListOf(
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_SMS,
+            Manifest.permission.READ_PHONE_STATE
+        )
+        
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            launcher.launch(missingPermissions.toTypedArray())
         }
     }
 }
@@ -62,13 +101,14 @@ fun SmsListener(viewModel: SeniorenViewModel) {
     DisposableEffect(context) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
+                Log.d("MainActivity", "Received SMS_UPDATED broadcast")
                 val body = intent?.getStringExtra("body") ?: ""
                 viewModel.handleIncomingSms(body)
             }
         }
         val filter = IntentFilter("com.example.seniorenbeheerder.SMS_UPDATED")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
         } else {
             context.registerReceiver(receiver, filter)
         }

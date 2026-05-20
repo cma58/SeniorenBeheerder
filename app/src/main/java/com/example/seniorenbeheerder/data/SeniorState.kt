@@ -10,6 +10,8 @@ data class SeniorState(
     val isBluetoothEnabled: Boolean = false,
     val isSilentMode: Boolean = false,
     val lastLocationUrl: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val isSyncing: Boolean = false,
     val antiScamEnabled: Boolean = false,
     val settingsLocked: Boolean = false,
