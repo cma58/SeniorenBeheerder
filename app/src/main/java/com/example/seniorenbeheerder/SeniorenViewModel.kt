@@ -13,11 +13,17 @@ class SeniorenViewModel(context: Context) : ViewModel() {
     private val prefs = context.getSharedPreferences("senioren_beheerder", Context.MODE_PRIVATE)
 
     var state by mutableStateOf(SeniorState(
-        phoneNumber = prefs.getString("phone_number", "") ?: ""
+        phoneNumber = prefs.getString("phone_number", "") ?: "",
+        isPrivacyAccepted = prefs.getBoolean("privacy_accepted", false)
     ))
         private set
 
     private val smsSender = SmsSender(context)
+
+    fun acceptPrivacy() {
+        state = state.copy(isPrivacyAccepted = true)
+        prefs.edit().putBoolean("privacy_accepted", true).apply()
+    }
 
     fun updatePhoneNumber(number: String) {
         state = state.copy(phoneNumber = number)

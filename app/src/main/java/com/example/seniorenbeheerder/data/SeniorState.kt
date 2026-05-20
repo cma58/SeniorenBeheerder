@@ -17,5 +17,6 @@ data class SeniorState(
     val settingsLocked: Boolean = false,
     val privacyReport: String? = null,
     val systemInfo: String? = null,
-    val agendaToday: List<String> = emptyList()
+    val agendaToday: List<String> = emptyList(),
+    val isPrivacyAccepted: Boolean = false
 )

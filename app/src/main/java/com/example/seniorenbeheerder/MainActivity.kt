@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -87,6 +89,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SetupHandler(viewModel: SeniorenViewModel) {
     val context = LocalContext.current
+    var showPrivacyDialog by remember { mutableStateOf(!viewModel.state.isPrivacyAccepted) }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showPhoneSetupDialog by remember { mutableStateOf(false) }
 
@@ -116,16 +119,46 @@ fun SetupHandler(viewModel: SeniorenViewModel) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        val missingPermissions = requiredPermissions.filter {
-            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
-        }
+    LaunchedEffect(viewModel.state.isPrivacyAccepted) {
+        if (viewModel.state.isPrivacyAccepted) {
+            val missingPermissions = requiredPermissions.filter {
+                ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+            }
 
-        if (missingPermissions.isNotEmpty()) {
-            showPermissionDialog = true
-        } else if (viewModel.state.phoneNumber.isEmpty()) {
-            showPhoneSetupDialog = true
+            if (missingPermissions.isNotEmpty()) {
+                showPermissionDialog = true
+            } else if (viewModel.state.phoneNumber.isEmpty()) {
+                showPhoneSetupDialog = true
+            }
         }
+    }
+
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Privacy & GDPR", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        "Welkom bij Senioren Beheerder. Wij hechten grote waarde aan uw privacy en die van de senior.",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("1. Gegevens: Wij verzamelen GEEN gegevens op externe servers. Alle data (telefoonnummers, locaties) blijft lokaal op uw toestel.")
+                    Text("2. SMS: De app gebruikt SMS om commando's te sturen. Er kunnen kosten verbonden zijn aan het verzenden van SMS-berichten via uw provider.")
+                    Text("3. Locatie: Locatiegegevens worden alleen opgevraagd wanneer u daarom vraagt en worden direct op uw kaart getoond via Osmdroid (privacy-vriendelijk).")
+                    Text("4. Rechten: U kunt uw gegevens op elk moment wissen door de app-gegevens te wissen in de instellingen.")
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.acceptPrivacy()
+                    showPrivacyDialog = false
+                }) {
+                    Text("Ik ga akkoord")
+                }
+            }
+        )
     }
 
     if (showPermissionDialog) {
