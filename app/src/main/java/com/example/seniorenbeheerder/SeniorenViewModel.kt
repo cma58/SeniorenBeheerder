@@ -10,13 +10,18 @@ import com.example.seniorenbeheerder.data.SeniorState
 import com.example.seniorenbeheerder.sms.SmsSender
 
 class SeniorenViewModel(context: Context) : ViewModel() {
-    var state by mutableStateOf(SeniorState())
+    private val prefs = context.getSharedPreferences("senioren_beheerder", Context.MODE_PRIVATE)
+
+    var state by mutableStateOf(SeniorState(
+        phoneNumber = prefs.getString("phone_number", "") ?: ""
+    ))
         private set
 
     private val smsSender = SmsSender(context)
 
     fun updatePhoneNumber(number: String) {
         state = state.copy(phoneNumber = number)
+        prefs.edit().putString("phone_number", number).apply()
     }
 
     fun sendCommand(command: String) {

@@ -1,20 +1,22 @@
 package com.example.seniorenbeheerder.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.FlashlightOn
-import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.FlashlightOff
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
@@ -50,72 +52,114 @@ fun DashboardContent(
     var phoneNumberInput by remember { mutableStateOf(state.phoneNumber) }
     var popupMessage by remember { mutableStateOf("") }
 
-    var showContactDialog by remember { mutableStateOf(false) }
-    var contactNameInput by remember { mutableStateOf("") }
-    var contactNumberInput by remember { mutableStateOf("") }
-
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // High-end Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                .padding(20.dp)
         ) {
-            Column {
-                Text("Beheer van:", style = MaterialTheme.typography.labelMedium)
-                Text(
-                    text = if (state.phoneNumber.isBlank()) "Niet ingesteld" else state.phoneNumber,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-            IconButton(onClick = { showPhoneDialog = true }) {
-                Icon(Icons.Default.Edit, contentDescription = "Telefoonnummer aanpassen")
-            }
-            Button(onClick = { onSendCommand("#STATUS") }) {
-                Text("Sync")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        "Beheer van Senior",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = if (state.phoneNumber.isBlank()) "Niet ingesteld" else state.phoneNumber,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Row {
+                    FilledIconButton(
+                        onClick = { showPhoneDialog = true },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Bewerken")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { onSendCommand("#STATUS") },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Sync")
+                    }
+                }
             }
         }
 
         if (state.isSyncing) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            Text("Synchroniseren...", style = MaterialTheme.typography.bodySmall)
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CircleShape),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primaryContainer
+            )
         }
 
-        // Widgets
+        // Stats Grid
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatusCard("Batterij", "${state.batteryLevel}%", Icons.Default.BatteryFull, Modifier.weight(1f))
-            StatusCard("Netwerk", "Check", Icons.Default.NetworkCheck, Modifier.weight(1f), onClick = { onSendCommand("#NETWERK") })
-            StatusCard("Volume", "${state.volumeLevel}/15", Icons.Default.VolumeUp, Modifier.weight(1f))
+            StatusCard(
+                "Batterij",
+                "${state.batteryLevel}%",
+                if (state.batteryLevel > 20) Icons.Outlined.BatteryFull else Icons.Outlined.BatteryAlert,
+                if (state.batteryLevel > 20) MaterialTheme.colorScheme.primary else Color.Red,
+                Modifier.weight(1f)
+            )
+            StatusCard(
+                "Netwerk",
+                "Signaal",
+                Icons.Outlined.NetworkCheck,
+                MaterialTheme.colorScheme.secondary,
+                Modifier.weight(1f),
+                onClick = { onSendCommand("#NETWERK") }
+            )
+            StatusCard(
+                "Volume",
+                "${state.volumeLevel}/15",
+                Icons.Outlined.VolumeUp,
+                MaterialTheme.colorScheme.tertiary,
+                Modifier.weight(1f)
+            )
         }
 
-        // Acties
-        Text("Snelle Acties", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
+        // Section: Location
+        SectionHeader("Locatie & Veiligheid")
         
-        ActionButton(
-            text = "Locatie Opvragen",
-            icon = Icons.Default.LocationOn,
-            onClick = { onSendCommand("#WAAR") }
-        )
-
-        // OSM DIRECT VIEW
         if (state.latitude != null && state.longitude != null) {
             val geoPoint = GeoPoint(state.latitude, state.longitude)
-            
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .height(280.dp),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                border = CardDefaults.outlinedCardBorder()
             ) {
                 Box(Modifier.fillMaxSize()) {
                     AndroidView(
@@ -123,16 +167,15 @@ fun DashboardContent(
                             MapView(context).apply {
                                 setTileSource(TileSourceFactory.MAPNIK)
                                 setMultiTouchControls(true)
-                                controller.setZoom(15.0)
+                                controller.setZoom(16.0)
                                 controller.setCenter(geoPoint)
                                 
                                 val marker = Marker(this)
                                 marker.position = geoPoint
                                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                                marker.title = "Senior Locatie"
+                                marker.title = "Locatie Senior"
                                 overlays.add(marker)
 
-                                // Voorkom dat de parent (de scrollbare Column) de touch-events inpikt
                                 setOnTouchListener { v, _ ->
                                     v.parent.requestDisallowInterceptTouchEvent(true)
                                     false
@@ -141,7 +184,6 @@ fun DashboardContent(
                         },
                         update = { view ->
                             view.controller.animateTo(geoPoint)
-                            // Update marker position if needed
                             val marker = view.overlays.filterIsInstance<Marker>().firstOrNull()
                             marker?.position = geoPoint
                             view.invalidate()
@@ -149,98 +191,101 @@ fun DashboardContent(
                         modifier = Modifier.fillMaxSize()
                     )
                     
-                    // Wissen knop
-                    IconButton(
-                        onClick = { onHandleIncomingSms("Locatie: ") },
+                    Surface(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(8.dp),
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+                            .padding(12.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        tonalElevation = 4.dp
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Kaart sluiten")
+                        IconButton(onClick = { onHandleIncomingSms("Locatie: ") }) {
+                            Icon(Icons.Default.Close, contentDescription = "Sluiten", modifier = Modifier.size(20.dp))
+                        }
                     }
                 }
             }
-        } else if (state.lastLocationUrl != null) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Laatste Locatie Link:", style = MaterialTheme.typography.titleSmall)
-                    Text(state.lastLocationUrl, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
+        } else {
+            OutlinedActionTile(
+                title = "Locatie Opvragen",
+                subtitle = "Vraag de huidige GPS positie op",
+                icon = Icons.Outlined.LocationOn,
+                onClick = { onSendCommand("#WAAR") }
+            )
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { onSendCommand("LAUN_ZOEK") }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.NotificationsActive, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Roepen")
-            }
-            Button(onClick = { onSendCommand("#BEL_TERUG") }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Default.Call, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Bel mij")
-            }
+        // Quick Actions
+        SectionHeader("Directe Interactie")
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ModernActionButton(
+                text = "Roepen",
+                icon = Icons.Outlined.NotificationsActive,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.weight(1f),
+                onClick = { onSendCommand("LAUN_ZOEK") }
+            )
+            ModernActionButton(
+                text = "Bel mij",
+                icon = Icons.Outlined.Call,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f),
+                onClick = { onSendCommand("#BEL_TERUG") }
+            )
         }
 
-        // Flashlight Tools
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Zaklamp Controle", style = MaterialTheme.typography.titleSmall)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = { onSendCommand("#LAMP ON") }, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.FlashlightOn, contentDescription = "Aan")
-                    }
-                    IconButton(onClick = { onSendCommand("#LAMP OFF") }, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.FlashlightOff, contentDescription = "Uit")
-                    }
-                    Button(onClick = { onSendCommand("#KNIPPER") }, modifier = Modifier.weight(2f)) {
-                        Icon(Icons.Default.FlashOn, contentDescription = null)
+        // Tools Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Hulpmiddelen", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Text("Zaklamp", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                    
+                    Row {
+                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP ON") }) {
+                            Icon(Icons.Default.FlashlightOn, contentDescription = "Aan")
+                        }
                         Spacer(Modifier.width(4.dp))
-                        Text("Knipper")
+                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP OFF") }) {
+                            Icon(Icons.Default.FlashlightOff, contentDescription = "Uit")
+                        }
                     }
                 }
-            }
-        }
 
-        // Contacts
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Snelkeuze Contacten", style = MaterialTheme.typography.titleSmall)
-                Button(onClick = { showContactDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.PersonAdd, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Contact toevoegen")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Bericht op scherm", style = MaterialTheme.typography.bodyMedium)
+                    OutlinedTextField(
+                        value = popupMessage,
+                        onValueChange = { popupMessage = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Typ een bericht voor de senior...") },
+                        shape = RoundedCornerShape(12.dp),
+                        trailingIcon = {
+                            IconButton(onClick = { 
+                                onSendCommand("#BERICHT $popupMessage")
+                                popupMessage = ""
+                            }) {
+                                Icon(Icons.Default.Send, contentDescription = "Verstuur", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    )
                 }
             }
         }
 
-        // Popup Bericht
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Stuur popup bericht", style = MaterialTheme.typography.titleSmall)
-                OutlinedTextField(
-                    value = popupMessage,
-                    onValueChange = { popupMessage = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Typ bericht...") }
-                )
-                Button(
-                    onClick = { 
-                        onSendCommand("#BERICHT $popupMessage")
-                        popupMessage = ""
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Verstuur")
-                }
-            }
-        }
+        Spacer(Modifier.height(20.dp))
     }
 
+    // Dialogs (unchanged logic, updated visuals)
     if (showPhoneDialog) {
         AlertDialog(
             onDismissRequest = { showPhoneDialog = false },
@@ -249,46 +294,109 @@ fun DashboardContent(
                 OutlinedTextField(
                     value = phoneNumberInput,
                     onValueChange = { phoneNumberInput = it },
-                    label = { Text("Telefoonnummer Senior") }
+                    label = { Text("Telefoonnummer Senior") },
+                    shape = RoundedCornerShape(12.dp)
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                Button(onClick = {
                     onUpdatePhoneNumber(phoneNumberInput)
                     showPhoneDialog = false
                 }) {
                     Text("Opslaan")
                 }
-            }
-        )
-    }
-
-    if (showContactDialog) {
-        AlertDialog(
-            onDismissRequest = { showContactDialog = false },
-            title = { Text("Nieuw Snelkeuze Contact") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = contactNameInput, onValueChange = { contactNameInput = it }, label = { Text("Naam") })
-                    OutlinedTextField(value = contactNumberInput, onValueChange = { contactNumberInput = it }, label = { Text("Telefoonnummer") })
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    onSendCommand("#CONTACT $contactNameInput $contactNumberInput")
-                    showContactDialog = false
-                    contactNameInput = ""
-                    contactNumberInput = ""
-                }) {
-                    Text("Toevoegen")
-                }
             },
             dismissButton = {
-                TextButton(onClick = { showContactDialog = false }) {
+                TextButton(onClick = { showPhoneDialog = false }) {
                     Text("Annuleren")
                 }
             }
         )
+    }
+}
+
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        color = MaterialTheme.colorScheme.onBackground
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatusCard(title: String, value: String, icon: ImageVector, iconColor: Color, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+    Card(
+        modifier = modifier,
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = CardDefaults.outlinedCardBorder()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun ModernActionButton(text: String, icon: ImageVector, containerColor: Color, contentColor: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(64.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = containerColor, contentColor = contentColor),
+        contentPadding = PaddingValues(12.dp)
+    ) {
+        Icon(icon, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text(text, fontWeight = FontWeight.Medium)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OutlinedActionTile(title: String, subtitle: String, icon: ImageVector, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        border = CardDefaults.outlinedCardBorder(),
+        color = Color.Transparent
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+        }
     }
 }
 
@@ -300,43 +408,11 @@ fun DashboardPreview() {
             state = SeniorState(
                 phoneNumber = "+31612345678",
                 batteryLevel = 85,
-                isWifiEnabled = true,
-                volumeLevel = 10,
-                lastLocationUrl = "https://maps.google.com/?q=52.3676,4.9041"
+                volumeLevel = 10
             ),
             onUpdatePhoneNumber = {},
             onSendCommand = {},
             onHandleIncomingSms = {}
         )
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StatusCard(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
-    Card(modifier = modifier, onClick = onClick) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(icon, contentDescription = null)
-            Text(title, style = MaterialTheme.typography.labelSmall)
-            Text(value, style = MaterialTheme.typography.titleMedium)
-        }
-    }
-}
-
-@Composable
-fun ActionButton(text: String, icon: ImageVector, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(text)
     }
 }
