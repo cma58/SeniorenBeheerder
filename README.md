@@ -4,9 +4,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Android 15+](https://img.shields.io/badge/Android-15%2B-green.svg)](https://developer.android.com)
 
-Een krachtige, moderne Android-applicatie ontworpen voor mantelzorgers om de veiligheid en het toestelgebruik van senioren op afstand te beheren via een robuust SMS-commandosysteem. 
+Een krachtige, moderne Android-applicatie ontworpen voor mantelzorgers om de veiligheid en het toestelgebruik van senioren op afstand te beheren via een robuust SMS-commandosysteem.
 
 **100% Gratis & Open Source – Geen trackers, geen abonnementen, gewoon pure rust voor de familie.**
+
+---
+
+## ⚠️ Belangrijke Informatie: Het Ecosysteem
+
+Deze app is de **Beheerder-app** (voor de mantelzorger) en maakt deel uit van een ecosysteem. Deze app werkt **uitsluitend** in combinatie met de **Senioren Launcher** app die op het toestel van de senior geïnstalleerd moet zijn.
+
+*   **Beheerder App** (deze repo): Voor de mantelzorger om commando's te sturen en de status te bekijken.
+*   **Senioren Launcher**: De vereenvoudigde interface voor de senior die de commando's ontvangt en uitvoert.
+    *   👉 **Download/Bekijk de Senioren Launcher hier:** [https://github.com/cma58/senioren-launcher.git](https://github.com/cma58/senioren-launcher.git)
 
 ---
 
@@ -49,9 +59,10 @@ Een krachtige, moderne Android-applicatie ontworpen voor mantelzorgers om de vei
 
 ## 🚀 Aan de slag
 
-1.  **Machtigingen**: Geef toegang tot SMS en Telefoon-status bij de eerste start.
-2.  **Configuratie**: Voer het nummer van de senior in via de wizard.
-3.  **Beheer**: U bent klaar om de senior op afstand te ondersteunen.
+1.  **Installatie Senior**: Installeer de [Senioren Launcher](https://github.com/cma58/senioren-launcher.git) op het toestel van de senior.
+2.  **Installatie Beheerder**: Installeer deze app op uw eigen toestel.
+3.  **Machtigingen**: Geef toegang tot SMS en Telefoon-status bij de eerste start.
+4.  **Configuratie**: Voer het nummer van de senior in via de wizard.
 
 ---
 
