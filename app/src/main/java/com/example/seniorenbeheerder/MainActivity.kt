@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import org.osmdroid.config.Configuration
 import com.example.seniorenbeheerder.ui.DashboardScreen
 import com.example.seniorenbeheerder.ui.SafetyScreen
 import com.example.seniorenbeheerder.ui.SettingsScreen
@@ -56,6 +57,11 @@ class MainActivity : ComponentActivity() {
         
         enableEdgeToEdge()
         setContent {
+            val context = LocalContext.current
+            LaunchedEffect(Unit) {
+                Configuration.getInstance().userAgentValue = "SeniorenBeheerder/1.0"
+                Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
+            }
             SeniorenBeheerderTheme {
                 PermissionHandler()
                 SmsListener(viewModel)

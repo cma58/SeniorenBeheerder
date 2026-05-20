@@ -10,6 +10,7 @@ Een krachtige Android-applicatie ontworpen voor mantelzorgers om de veiligheid e
 - **Anti-Scam**: Blokkeer ongewenste oproepen van onbekende nummers op afstand.
 - **Zorg & Planning**: Beheer medicijnherinneringen, agenda-afspraken en wekkers.
 - **Systeembeheer**: Pas op afstand instellingen aan zoals Wi-Fi, Bluetooth, helderheid en tekstgrootte.
+- **Automatisering**: Volledig geautomatiseerde builds en releases via GitHub Actions.
 
 ## 📜 Overzicht Commando's
 
@@ -26,12 +27,13 @@ De app ondersteunt meer dan 35 commando's, onderverdeeld in:
 - **Taal**: Kotlin
 - **UI Framework**: Jetpack Compose met Material 3
 - **Architectuur**: MVVM (ViewModel & State)
-- **Kaarten**: OpenStreetMap via `osmdroid` (Play Store vriendelijk)
+- **Kaarten**: OpenStreetMap via `osmdroid` met geoptimaliseerde touch-afhandeling.
+- **CI/CD**: GitHub Actions voor automatische APK generatie.
 - **Communicatie**: Android Telephony SDK (SMS Manager & BroadcastReceivers)
 
 ## 🚀 Installatie & Gebruik
 
-De app is ontworpen voor de Play Store en vereist geen ingewikkelde configuratie. Na installatie vraagt de app om de benodigde SMS-machtigingen om correct te kunnen functioneren als beheerderstootstel.
+De app is ontworpen voor de Play Store en vereist geen ingewikkelde configuratie. Na installatie vraagt de app om de benodigde SMS-machtigingen om correct te kunnen functioneren als beheerderstoestel.
 
 ---
 *Ontwikkeld voor maximale rust en veiligheid voor zowel de senior als de verzorger.*

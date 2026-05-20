@@ -131,6 +131,12 @@ fun DashboardContent(
                                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                                 marker.title = "Senior Locatie"
                                 overlays.add(marker)
+
+                                // Voorkom dat de parent (de scrollbare Column) de touch-events inpikt
+                                setOnTouchListener { v, _ ->
+                                    v.parent.requestDisallowInterceptTouchEvent(true)
+                                    false
+                                }
                             }
                         },
                         update = { view ->
