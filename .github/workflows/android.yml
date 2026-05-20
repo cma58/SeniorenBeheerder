@@ -25,14 +25,20 @@ jobs:
       run: chmod +x gradlew
 
     - name: Decode Keystore
-      if: env.SIGNING_KEY != null
+      if: secrets.SIGNING_KEY != null
       run: |
+        mkdir -p keystore
         echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > keystore/release.keystore
       env:
         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
     - name: Build with Gradle
-      run: ./gradlew assembleRelease
+      run: |
+        if [ -f "keystore/release.keystore" ]; then
+          ./gradlew assembleRelease
+        else
+          ./gradlew assembleDebug
+        fi
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'seniorenbeheerder' }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'seniorenkey' }}
@@ -48,23 +54,25 @@ jobs:
         tag_name: release-${{ steps.date.outputs.date }}
         name: Senioren Beheerder - Build ${{ steps.date.outputs.date }}
         body: |
-          ### 🚀 Nieuwe Build Status (Signed Update)
+          ### 🚀 Nieuwe Build Status
 
-          Deze versie is ondertekend met de standaard release key. Je kunt deze over de vorige versie heen installeren zonder te deïnstalleren.
+          Deze versie is automatisch gegenereerd. 
 
           #### ✅ Wat werkt er nu:
-          - **35+ SMS Commando's:** Volledig geïmplementeerd in de UI.
+          - **35+ SMS Commando's:** Volledig geïmplemented in de UI.
           - **Dashboard:** Batterij, Volume en Netwerk widgets werken.
           - **Locatie Herkenning:** Breedtegraad en lengtegraad worden correct uit SMS gehaald.
           - **OpenStreetMap:** Visuele kaart met marker en soepele bediening.
           - **SMS Systeem:** Machtigingen en communicatie-fix (`RECEIVER_EXPORTED`) toegepast.
-          - **Automatisering:** GitHub Actions bouwt nu automatisch een gesigneerde release APK.
+          - **Automatisering:** GitHub Actions bouwt nu automatisch.
 
           #### ⚠️ In bewerking / Aandachtspunten:
-          - **Keystore:** Zorg dat je de keystore lokaal in de map `keystore/` hebt staan voor lokale builds.
+          - **Ondertekening:** Als de build als 'debug' gemarkeerd is, moet je de vorige versie mogelijk eerst verwijderen. Voeg de `SIGNING_KEY` toe aan GitHub Secrets voor naadloze updates vanaf GitHub.
 
           #### 📦 Downloads
-          De gesigneerde APK is hieronder te vinden als asset.
-        files: app/build/outputs/apk/release/app-release.apk
+          De APK is hieronder te vinden als asset.
+        files: |
+          app/build/outputs/apk/release/app-release.apk
+          app/build/outputs/apk/debug/app-debug.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
