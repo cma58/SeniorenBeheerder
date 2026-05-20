@@ -24,8 +24,19 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Decode Keystore
+      if: env.SIGNING_KEY != null
+      run: |
+        echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > keystore/release.keystore
+      env:
+        SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+
     - name: Build with Gradle
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleRelease
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'seniorenbeheerder' }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'seniorenkey' }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'seniorenbeheerder' }}
 
     - name: Get Current Date
       id: date
@@ -37,23 +48,23 @@ jobs:
         tag_name: release-${{ steps.date.outputs.date }}
         name: Senioren Beheerder - Build ${{ steps.date.outputs.date }}
         body: |
-          ### 🚀 Nieuwe Build Status
+          ### 🚀 Nieuwe Build Status (Signed Update)
+
+          Deze versie is ondertekend met de standaard release key. Je kunt deze over de vorige versie heen installeren zonder te deïnstalleren.
 
           #### ✅ Wat werkt er nu:
           - **35+ SMS Commando's:** Volledig geïmplementeerd in de UI.
           - **Dashboard:** Batterij, Volume en Netwerk widgets werken.
           - **Locatie Herkenning:** Breedtegraad en lengtegraad worden correct uit SMS gehaald.
-          - **OpenStreetMap:** Visuele kaart met marker (nu met Internet permissie fix).
+          - **OpenStreetMap:** Visuele kaart met marker en soepele bediening.
           - **SMS Systeem:** Machtigingen en communicatie-fix (`RECEIVER_EXPORTED`) toegepast.
-          - **Zorg & Planning:** Medicatie en agenda invoer velden.
+          - **Automatisering:** GitHub Actions bouwt nu automatisch een gesigneerde release APK.
 
           #### ⚠️ In bewerking / Aandachtspunten:
-          - **Kaart Tiles:** Mogelijk caches leegmaken als kaart nog grijs blijft.
-          - **SMS Kosten:** Let op dat commando's via SMS worden verstuurd.
-          - **Play Store Requirements:** Verdere controle op privacy policy voor SMS-rechten.
+          - **Keystore:** Zorg dat je de keystore lokaal in de map `keystore/` hebt staan voor lokale builds.
 
           #### 📦 Downloads
-          De APK is hieronder te vinden als asset.
-        files: app/build/outputs/apk/debug/app-debug.apk
+          De gesigneerde APK is hieronder te vinden als asset.
+        files: app/build/outputs/apk/release/app-release.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
