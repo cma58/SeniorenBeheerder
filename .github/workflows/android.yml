@@ -1,0 +1,59 @@
+name: Android Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug
+
+    - name: Get Current Date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: release-${{ steps.date.outputs.date }}
+        name: Senioren Beheerder - Build ${{ steps.date.outputs.date }}
+        body: |
+          ### 🚀 Nieuwe Build Status
+
+          #### ✅ Wat werkt er nu:
+          - **35+ SMS Commando's:** Volledig geïmplementeerd in de UI.
+          - **Dashboard:** Batterij, Volume en Netwerk widgets werken.
+          - **Locatie Herkenning:** Breedtegraad en lengtegraad worden correct uit SMS gehaald.
+          - **OpenStreetMap:** Visuele kaart met marker (nu met Internet permissie fix).
+          - **SMS Systeem:** Machtigingen en communicatie-fix (`RECEIVER_EXPORTED`) toegepast.
+          - **Zorg & Planning:** Medicatie en agenda invoer velden.
+
+          #### ⚠️ In bewerking / Aandachtspunten:
+          - **Kaart Tiles:** Mogelijk caches leegmaken als kaart nog grijs blijft.
+          - **SMS Kosten:** Let op dat commando's via SMS worden verstuurd.
+          - **Play Store Requirements:** Verdere controle op privacy policy voor SMS-rechten.
+
+          #### 📦 Downloads
+          De APK is hieronder te vinden als asset.
+        files: app/build/outputs/apk/debug/app-debug.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
