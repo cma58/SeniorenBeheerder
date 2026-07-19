@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.seniorenbeheerder.data.SeniorState
 import com.example.seniorenbeheerder.sms.SmsSender
+import com.example.seniorenbeheerder.sms.SmsStatus
 
 class SeniorenViewModel(context: Context) : ViewModel() {
     private val appContext = context.applicationContext
@@ -57,7 +58,13 @@ class SeniorenViewModel(context: Context) : ViewModel() {
         val toSend = injectPin(command.trim(), state.pinCode)
         Log.d("SeniorenViewModel", "Sending command: $toSend to ${state.phoneNumber}")
         state = state.copy(isSyncing = true)
-        smsSender.sendSms(state.phoneNumber, toSend)
+        smsSender.sendSms(state.phoneNumber, toSend) { status ->
+            // Bij een mislukte verzending stopt de "bezig"-indicator meteen; er komt
+            // immers geen antwoord dat handleIncomingSms zou resetten.
+            if (status == SmsStatus.FAILED) {
+                state = state.copy(isSyncing = false)
+            }
+        }
     }
 
     private fun isRateLimited(): Boolean {
