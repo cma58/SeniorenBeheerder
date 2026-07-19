@@ -52,7 +52,7 @@ fun SafetyContent(
                 ToggleRow(
                     label = "Anti-Scam Modus",
                     checked = state.antiScamEnabled,
-                    onCheckedChange = { onSendCommand("#VEILIG ${if (it) "ON" else "OFF"}") }
+                    onCheckedChange = { onSendCommand("#VEILIG ${if (it) "AAN" else "UIT"}") }
                 )
                 Text(
                     "Blokkeert automatisch oproepen van onbekende nummers die niet in de contactenlijst staan.",
@@ -75,7 +75,7 @@ fun SafetyContent(
                 ToggleRow(
                     label = "Instellingen Vergrendelen",
                     checked = state.settingsLocked,
-                    onCheckedChange = { onSendCommand("#SLOT ${if (it) "ON" else "OFF"}") }
+                    onCheckedChange = { onSendCommand("#SLOT ${if (it) "AAN" else "UIT"}") }
                 )
                 Text(
                     "Voorkomt dat de senior per ongeluk belangrijke systeeminstellingen wijzigt.",

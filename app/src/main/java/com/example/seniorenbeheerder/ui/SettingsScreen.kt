@@ -2,6 +2,7 @@ package com.example.seniorenbeheerder.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -9,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.seniorenbeheerder.SeniorenViewModel
 import kotlin.math.roundToInt
@@ -22,6 +24,7 @@ fun SettingsScreen(viewModel: SeniorenViewModel, modifier: Modifier = Modifier) 
     SettingsContent(
         state = viewModel.state,
         onSendCommand = viewModel::sendCommand,
+        onUpdatePin = viewModel::updatePin,
         modifier = modifier
     )
 }
@@ -30,6 +33,7 @@ fun SettingsScreen(viewModel: SeniorenViewModel, modifier: Modifier = Modifier) 
 fun SettingsContent(
     state: SeniorState,
     onSendCommand: (String) -> Unit,
+    onUpdatePin: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var localVolume by remember(state.volumeLevel) { mutableStateOf(state.volumeLevel.toFloat()) }
@@ -92,19 +96,19 @@ fun SettingsContent(
                 ToggleRow(
                     label = "Wi-Fi",
                     checked = state.isWifiEnabled,
-                    onCheckedChange = { onSendCommand("#WIFI ${if (it) "ON" else "OFF"}") }
+                    onCheckedChange = { onSendCommand("#WIFI ${if (it) "AAN" else "UIT"}") }
                 )
                 HorizontalDivider()
                 ToggleRow(
                     label = "Bluetooth",
                     checked = state.isBluetoothEnabled,
-                    onCheckedChange = { onSendCommand("#BT ${if (it) "ON" else "OFF"}") }
+                    onCheckedChange = { onSendCommand("#BT ${if (it) "AAN" else "UIT"}") }
                 )
                 HorizontalDivider()
                 ToggleRow(
                     label = "Stille Modus",
                     checked = state.isSilentMode,
-                    onCheckedChange = { onSendCommand("#STIL ${if (it) "ON" else "OFF"}") }
+                    onCheckedChange = { onSendCommand("#STIL ${if (it) "AAN" else "UIT"}") }
                 )
             }
         }
@@ -165,6 +169,19 @@ fun SettingsContent(
         Text("Systeem & Beveiliging", style = MaterialTheme.typography.titleMedium)
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Beveiligingscode van de telefoon: nodig om gevoelige opdrachten (locatie, SOS,
+            // slot, herstart, ...) te mogen uitvoeren. Moet overeenkomen met de PIN in de
+            // Launcher (standaard 1234).
+            OutlinedTextField(
+                value = state.pinCode,
+                onValueChange = { new -> if (new.length <= 8 && new.all { it.isDigit() }) onUpdatePin(new) },
+                label = { Text("Beveiligingscode van de telefoon") },
+                supportingText = { Text("Standaard 1234. Vereist voor gevoelige opdrachten (locatie, SOS, slot, herstart).") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Button(onClick = { showPinDialog = true }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Lock, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
@@ -208,7 +225,11 @@ fun SettingsContent(
             },
             confirmButton = {
                 Button(onClick = {
+                    // Eerst versturen (injectie gebruikt nog de HUIDIGE pin als eerste
+                    // argument), daarna de nieuwe pin lokaal opslaan zodat volgende
+                    // gevoelige opdrachten meteen de nieuwe pin gebruiken.
                     onSendCommand("#PIN $pinInput")
+                    onUpdatePin(pinInput)
                     showPinDialog = false
                     pinInput = ""
                 }) {

@@ -18,5 +18,9 @@ data class SeniorState(
     val privacyReport: String? = null,
     val systemInfo: String? = null,
     val agendaToday: List<String> = emptyList(),
-    val isPrivacyAccepted: Boolean = false
+    val isPrivacyAccepted: Boolean = false,
+    // De beveiligingscode (PIN) van de telefoon van de senior. De Launcher vereist deze
+    // als eerste argument bij gevoelige opdrachten (locatie, SOS, slot, herstart, ...).
+    // Standaard 1234, gelijk aan de standaard-PIN van de Launcher.
+    val pinCode: String = "1234"
 )

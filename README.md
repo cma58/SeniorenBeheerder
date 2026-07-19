@@ -20,7 +20,13 @@ Deze app is de **Beheerder-app** (voor de mantelzorger) en maakt deel uit van ee
 
 ---
 
-## ✨ Nieuw in Versie 1.1
+## ✨ Nieuw in Versie 1.2
+
+*   **PIN-beveiligde commando's**: Gevoelige opdrachten (locatie, SOS, vergrendelen, herstart) worden nu automatisch beveiligd met de beveiligingscode van de telefoon. Dit sluit naadloos aan op de nieuwe beveiliging van de Senioren Launcher.
+*   **Beheerste opdrachtsnelheid**: De app respecteert de limiet van de Launcher (max. 5 opdrachten per minuut) en waarschuwt u i.p.v. dat opdrachten stilzwijgend verloren gaan.
+*   **Nederlandse commando-waarden**: Schakelaars sturen nu `AAN`/`UIT` (i.p.v. `ON`/`OFF`), volledig afgestemd op de Launcher.
+
+## ✨ Versie 1.1
 
 *   **Modern Material 3 Design**: Een volledige visuele update met een professionele interface, geoptimaliseerd voor de nieuwste Android toestellen.
 *   **Intelligente Setup Flow**: Gebruikers worden direct bij de eerste start begeleid bij machtigingen en configuratie.
@@ -47,8 +53,22 @@ Deze app is de **Beheerder-app** (voor de mantelzorger) en maakt deel uit van ee
 | `#STATUS` | Update batterij, volume en netwerkgegevens |
 | `#BEL_TERUG` | Laat de senior automatisch naar u bellen |
 | `LAUN_ZOEK` | Activeert een luid geluidssignaal op het toestel |
-| `#LAMP ON/OFF` | Schakelt de zaklamp op afstand aan of uit |
+| `#LAMP AAN/UIT` | Schakelt de zaklamp op afstand aan of uit |
 | `#BERICHT [tekst]` | Toont een pop-up bericht op het scherm van de senior |
+
+## 🔒 Beveiliging: PIN-code
+
+Voor uw veiligheid vereist de Senioren Launcher een **beveiligingscode (PIN)** bij gevoelige
+opdrachten, zoals locatie opvragen, SOS forceren, instellingen vergrendelen en herstarten.
+
+*   De Beheerder-app voegt deze code **automatisch** toe aan de betreffende opdrachten — u hoeft
+    hier zelf niets bij te typen.
+*   Stel de code in via **Instellingen → Systeem & Beveiliging → Beveiligingscode van de telefoon**.
+*   De **standaardcode is `1234`** (gelijk aan de standaard-PIN van de Launcher). Wijzigt u de PIN
+    op afstand via "PIN Code wijzigen", dan onthoudt de Beheerder de nieuwe code automatisch.
+
+Zonder de juiste code stuurt de Launcher een melding "🔒 PIN vereist" terug in plaats van de
+opdracht uit te voeren.
 
 ## 🛠️ Gebruikte Technieken
 

@@ -249,11 +249,11 @@ fun DashboardContent(
                     Text("Zaklamp", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                     
                     Row {
-                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP ON") }) {
+                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP AAN") }) {
                             Icon(Icons.Default.FlashlightOn, contentDescription = "Aan")
                         }
                         Spacer(Modifier.width(4.dp))
-                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP OFF") }) {
+                        FilledTonalIconButton(onClick = { onSendCommand("#LAMP UIT") }) {
                             Icon(Icons.Default.FlashlightOff, contentDescription = "Uit")
                         }
                     }

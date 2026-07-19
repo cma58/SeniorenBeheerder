@@ -2,6 +2,7 @@ package com.example.seniorenbeheerder
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,15 +11,22 @@ import com.example.seniorenbeheerder.data.SeniorState
 import com.example.seniorenbeheerder.sms.SmsSender
 
 class SeniorenViewModel(context: Context) : ViewModel() {
+    private val appContext = context.applicationContext
     private val prefs = context.getSharedPreferences("senioren_beheerder", Context.MODE_PRIVATE)
 
     var state by mutableStateOf(SeniorState(
         phoneNumber = prefs.getString("phone_number", "") ?: "",
-        isPrivacyAccepted = prefs.getBoolean("privacy_accepted", false)
+        isPrivacyAccepted = prefs.getBoolean("privacy_accepted", false),
+        pinCode = prefs.getString("pin_code", DEFAULT_PIN) ?: DEFAULT_PIN
     ))
         private set
 
     private val smsSender = SmsSender(context)
+
+    // Spiegelt de rate-limiting van de Launcher (max RATE_LIMIT_MAX opdrachten per
+    // RATE_LIMIT_WINDOW_MS). Zo wordt de beheerder gewaarschuwd i.p.v. dat de telefoon
+    // extra opdrachten stilzwijgend negeert.
+    private val commandTimestamps = ArrayDeque<Long>()
 
     fun acceptPrivacy() {
         state = state.copy(isPrivacyAccepted = true)
@@ -30,16 +38,61 @@ class SeniorenViewModel(context: Context) : ViewModel() {
         prefs.edit().putString("phone_number", number).apply()
     }
 
+    /** Bewaar de beveiligingscode (PIN) van de telefoon lokaal voor gevoelige opdrachten. */
+    fun updatePin(pin: String) {
+        val clean = pin.trim()
+        state = state.copy(pinCode = clean)
+        prefs.edit().putString("pin_code", clean).apply()
+    }
+
     fun sendCommand(command: String) {
-        Log.d("SeniorenViewModel", "Sending command: $command to ${state.phoneNumber}")
+        if (isRateLimited()) {
+            Toast.makeText(
+                appContext,
+                "⏳ Te veel opdrachten achter elkaar. Wacht even (max $RATE_LIMIT_MAX per minuut).",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        val toSend = injectPin(command.trim(), state.pinCode)
+        Log.d("SeniorenViewModel", "Sending command: $toSend to ${state.phoneNumber}")
         state = state.copy(isSyncing = true)
-        smsSender.sendSms(state.phoneNumber, command)
+        smsSender.sendSms(state.phoneNumber, toSend)
+    }
+
+    private fun isRateLimited(): Boolean {
+        val now = System.currentTimeMillis()
+        while (commandTimestamps.isNotEmpty() && now - commandTimestamps.first() > RATE_LIMIT_WINDOW_MS) {
+            commandTimestamps.removeFirst()
+        }
+        if (commandTimestamps.size >= RATE_LIMIT_MAX) return true
+        commandTimestamps.addLast(now)
+        return false
+    }
+
+    /**
+     * Voegt de PIN toe als eerste argument (direct na het commando) voor gevoelige
+     * opdrachten, exact zoals SmsReceiver.hasValidPin in de Launcher verwacht.
+     * Voorbeelden:
+     *   "#WAAR"            -> "#WAAR 1234"
+     *   "#SLOT AAN"        -> "#SLOT 1234 AAN"
+     *   "#BLOKKEER 06..."  -> "#BLOKKEER 1234 06..."
+     *   "#PIN 5678"        -> "#PIN 1234 5678"  (huidige pin, dan nieuwe pin)
+     * Niet-gevoelige opdrachten worden ongewijzigd verstuurd.
+     */
+    private fun injectPin(command: String, pin: String): String {
+        if (pin.isBlank()) return command
+        val spaceIdx = command.indexOf(' ')
+        val keyword = if (spaceIdx == -1) command else command.substring(0, spaceIdx)
+        val rest = if (spaceIdx == -1) "" else command.substring(spaceIdx + 1).trim()
+        if (keyword.uppercase() !in SENSITIVE_COMMANDS) return command
+        return if (rest.isEmpty()) "$keyword $pin" else "$keyword $pin $rest"
     }
 
     fun handleIncomingSms(body: String) {
         Log.d("SeniorenViewModel", "Handling incoming SMS: $body")
         var newState = state.copy(isSyncing = false)
-        
+
         // Verwijder de "Sionro Remote:" prefix als die er is
         val cleanBody = if (body.startsWith("Sionro Remote:")) {
             body.substringAfter("Sionro Remote:").trim()
@@ -73,7 +126,7 @@ class SeniorenViewModel(context: Context) : ViewModel() {
         // 2. Locatie en Coördinaten
         if (cleanBody.contains("maps.google.com") || cleanBody.contains("google.com/maps") || cleanBody.contains("query=") || cleanBody.contains("📍 Locatie:")) {
             Log.d("SeniorenViewModel", "Processing Location SMS")
-            
+
             // Probeer coördinaten te extraheren (bijv. 51.0441737,3.7436598 of query=51.044,3.743)
             val coordsPattern = Regex("([-+]?\\d+\\.\\d+),([-+]?\\d+\\.\\d+)")
             val match = coordsPattern.find(cleanBody)
@@ -136,5 +189,18 @@ class SeniorenViewModel(context: Context) : ViewModel() {
         }
 
         state = newState
+    }
+
+    companion object {
+        private const val DEFAULT_PIN = "1234"
+        private const val RATE_LIMIT_WINDOW_MS = 60_000L
+        private const val RATE_LIMIT_MAX = 5
+        // Spiegelt SmsReceiver.isSensitiveCommand in de Launcher: deze opdrachten vereisen
+        // de PIN als eerste argument direct na het commando. (#PING valt hier bewust NIET
+        // onder — dat is een prefix van #PIN maar een ongevoelige welzijns-check.)
+        private val SENSITIVE_COMMANDS = setOf(
+            "#WAAR", "#SPEAKER", "#BEL_TERUG", "#UPDATE_CHECK", "#VERWIJDER_CONTACT",
+            "#BLOKKEER", "#SOS_NU", "#RESTART", "#SLOT", "#PIN"
+        )
     }
 }
